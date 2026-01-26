@@ -52,3 +52,9 @@ Cache plikowy (domyslnie 10 minut) zapisuje odpowiedzi w `/data`.
 ## Uwagi
 
 Projekt jest zanonimizowany i nie zawiera danych osobowych ani podpisow.
+
+## Wykonawcy
+
+- Szymon Wodziak
+- Olaf Stanisz
+- Tymek Kozka
