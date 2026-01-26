@@ -13,6 +13,8 @@
   --teal: #2d7f78;
   --glow-accent: rgba(255, 122, 61, 0.22);
   --glow-teal: rgba(45, 127, 120, 0.18);
+  --cloud-color: rgba(255, 255, 255, 0.6);
+  --cloud-shadow: rgba(200, 214, 230, 0.35);
   --shadow: 0 24px 50px rgba(26, 44, 45, 0.15);
   --radius: 18px;
   --transition: 200ms ease;
@@ -78,6 +80,8 @@ body.theme-bad {
   --teal: #7dd3c7;
   --glow-accent: rgba(77, 208, 225, 0.22);
   --glow-teal: rgba(125, 211, 199, 0.18);
+  --cloud-color: rgba(210, 228, 245, 0.3);
+  --cloud-shadow: rgba(120, 150, 180, 0.25);
   --shadow: 0 24px 50px rgba(0, 0, 0, 0.45);
 }
 
@@ -98,8 +102,57 @@ p {
   margin: 0 auto;
   padding: clamp(16px, 3vw, 32px);
   position: relative;
-  z-index: 1;
+  z-index: 2;
   transition: filter 800ms ease;
+}
+
+.cloud-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 900ms ease;
+  z-index: 0;
+}
+
+.clouds {
+  position: absolute;
+  inset: -25%;
+  background-image:
+    radial-gradient(ellipse at 20% 30%, var(--cloud-color) 0%, rgba(255, 255, 255, 0) 60%),
+    radial-gradient(ellipse at 50% 20%, var(--cloud-color) 0%, rgba(255, 255, 255, 0) 60%),
+    radial-gradient(ellipse at 80% 35%, var(--cloud-color) 0%, rgba(255, 255, 255, 0) 60%),
+    radial-gradient(ellipse at 30% 70%, var(--cloud-shadow) 0%, rgba(255, 255, 255, 0) 65%),
+    radial-gradient(ellipse at 70% 75%, var(--cloud-shadow) 0%, rgba(255, 255, 255, 0) 65%);
+  background-size: 520px 260px;
+  background-repeat: repeat;
+  filter: blur(8px);
+  opacity: 0.55;
+  animation: cloudDrift 160s linear infinite;
+  transform: translate3d(0, 0, 0);
+}
+
+.clouds.layer-two {
+  background-size: 760px 320px;
+  opacity: 0.35;
+  filter: blur(14px);
+  animation-duration: 220s;
+  animation-direction: reverse;
+}
+
+.clouds.layer-three {
+  background-size: 980px 380px;
+  opacity: 0.25;
+  filter: blur(18px);
+  animation-duration: 280s;
+}
+
+body.is-cloudy .cloud-layer {
+  opacity: var(--cloud-opacity, 0.6);
+}
+
+body.is-cloudy-heavy .cloud-layer {
+  opacity: var(--cloud-opacity, 0.9);
 }
 
 .rain-canvas {
@@ -110,7 +163,7 @@ p {
   pointer-events: none;
   opacity: 0;
   transition: opacity 800ms ease;
-  z-index: 0;
+  z-index: 1;
   filter: blur(0.2px);
 }
 
@@ -630,6 +683,15 @@ body.is-rainy .app {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes cloudDrift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-12%, 0, 0);
   }
 }
 

@@ -266,7 +266,7 @@ function renderCurrent(data) {
   els.currentTemp.textContent = formatTemp(current.temperature_2m);
   els.currentFeels.textContent = formatTemp(current.apparent_temperature);
   els.currentCondition.textContent = WEATHER_CODES[current.weather_code] || 'Warunki';
-  applyWeatherTheme(current.weather_code);
+  applyWeatherTheme(current.weather_code, current.cloud_cover);
 
   const windDir = current.wind_direction_10m ?? 0;
   els.windArrow.style.setProperty('--wind-deg', `${windDir}deg`);
@@ -333,8 +333,9 @@ function renderDaily(data) {
   }
 }
 
-function applyWeatherTheme(code) {
-  document.body.classList.remove('theme-good', 'theme-bad');
+function applyWeatherTheme(code, cloudCover) {
+  document.body.classList.remove('theme-good', 'theme-bad', 'is-cloudy', 'is-cloudy-heavy');
+  document.body.style.removeProperty('--cloud-opacity');
   if (code === undefined || code === null || Number.isNaN(code)) {
     if (state.rainSystem) {
       state.rainSystem.setActive(false);
@@ -345,10 +346,30 @@ function applyWeatherTheme(code) {
   const numericCode = Number(code);
   const isGood = [0, 1, 2].includes(numericCode);
   document.body.classList.add(isGood ? 'theme-good' : 'theme-bad');
+  applyCloudLayer(numericCode, cloudCover);
   const isRainy = isRainCode(numericCode);
   document.body.classList.toggle('is-rainy', isRainy);
   if (state.rainSystem) {
     state.rainSystem.setActive(isRainy);
+  }
+}
+
+function applyCloudLayer(code, cloudCover) {
+  const lightCloudCodes = [2];
+  const heavyCloudCodes = [3, 45, 48, 51, 53, 55, 61, 63, 65, 71, 73, 75, 80, 81, 82, 95, 96, 99];
+  const isCloudy = lightCloudCodes.includes(code) || heavyCloudCodes.includes(code);
+  if (!isCloudy) {
+    return;
+  }
+  const isHeavy = heavyCloudCodes.includes(code);
+  document.body.classList.add('is-cloudy');
+  if (isHeavy) {
+    document.body.classList.add('is-cloudy-heavy');
+  }
+  if (typeof cloudCover === 'number' && !Number.isNaN(cloudCover)) {
+    const clamped = Math.min(100, Math.max(0, cloudCover));
+    const opacity = 0.35 + (clamped / 100) * 0.55;
+    document.body.style.setProperty('--cloud-opacity', opacity.toFixed(2));
   }
 }
 
