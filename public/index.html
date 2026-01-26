@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weather Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar card">
+      <div class="brand">
+        <span class="brand-mark"></span>
+        <div>
+          <p class="eyebrow">WeatherApp</p>
+          <h1>Weather Dashboard</h1>
+        </div>
+      </div>
+      <div class="unit-controls">
+        <div class="unit-block">
+          <span>Temperature</span>
+          <div class="unit-group" data-unit-group="temp" role="group" aria-label="Temperature units">
+            <button type="button" class="unit-btn is-active" data-unit="c" aria-pressed="true">°C</button>
+            <button type="button" class="unit-btn" data-unit="f" aria-pressed="false">°F</button>
+          </div>
+        </div>
+        <div class="unit-block">
+          <span>Wind speed</span>
+          <div class="unit-group" data-unit-group="wind" role="group" aria-label="Wind speed units">
+            <button type="button" class="unit-btn is-active" data-unit="kmh" aria-pressed="true">km/h</button>
+            <button type="button" class="unit-btn" data-unit="ms" aria-pressed="false">m/s</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <section class="card search-card">
+          <h2>Find a location</h2>
+          <div class="search-box">
+            <label class="sr-only" for="citySearch">Search city</label>
+            <input
+              id="citySearch"
+              type="text"
+              placeholder="Search city or region"
+              autocomplete="off"
+              aria-label="Search city"
+            />
+            <button id="searchBtn" type="button" class="btn">Search</button>
+          </div>
+          <div id="searchResults" class="search-results" role="listbox" aria-label="Search results"></div>
+          <div class="quick-cities">
+            <p class="section-label">Quick cities</p>
+            <div class="chip-row">
+              <button class="chip" data-name="Warsaw" data-lat="52.2297" data-lon="21.0122">Warsaw</button>
+              <button class="chip" data-name="London" data-lat="51.5072" data-lon="-0.1276">London</button>
+              <button class="chip" data-name="New York" data-lat="40.7128" data-lon="-74.0060">New York</button>
+              <button class="chip" data-name="Tokyo" data-lat="35.6762" data-lon="139.6503">Tokyo</button>
+              <button class="chip" data-name="Sydney" data-lat="-33.8688" data-lon="151.2093">Sydney</button>
+            </div>
+          </div>
+          <p id="statusMessage" class="status" aria-live="polite"></p>
+        </section>
+
+        <section class="card favorites-card">
+          <div class="card-header">
+            <h2>Favorites</h2>
+            <button id="clearFavorites" type="button" class="ghost-btn">Clear</button>
+          </div>
+          <ul id="favoritesList" class="favorites-list"></ul>
+        </section>
+      </aside>
+
+      <main class="main">
+        <section class="card current-card" data-loading>
+          <div class="card-header">
+            <div>
+              <p class="section-label">Current conditions</p>
+              <h2 id="locationName">Select a location</h2>
+              <p id="locationMeta" class="muted">—</p>
+            </div>
+            <button id="favoriteToggle" type="button" class="ghost-btn" aria-label="Toggle favorite">☆ Save</button>
+          </div>
+          <div class="content">
+            <div class="current-main">
+              <div class="temp-block">
+                <p class="temp-value" id="currentTemp">--</p>
+                <p class="temp-meta">Feels like <span id="currentFeels">--</span></p>
+                <p id="currentCondition" class="condition">—</p>
+              </div>
+              <div class="wind-block">
+                <div class="compass">
+                  <div class="compass-ring"></div>
+                  <div class="wind-arrow" id="windArrow"></div>
+                  <span class="compass-label">N</span>
+                </div>
+                <div class="wind-meta">
+                  <p id="windSpeed">--</p>
+                  <p id="windDirection">--</p>
+                </div>
+              </div>
+            </div>
+            <div class="metrics-grid">
+              <div class="metric">
+                <span>Humidity</span>
+                <strong id="metricHumidity">--</strong>
+              </div>
+              <div class="metric">
+                <span>Pressure</span>
+                <strong id="metricPressure">--</strong>
+              </div>
+              <div class="metric">
+                <span>Cloud cover</span>
+                <strong id="metricClouds">--</strong>
+              </div>
+              <div class="metric">
+                <span>Precipitation</span>
+                <strong id="metricPrecip">--</strong>
+              </div>
+              <div class="metric">
+                <span>Visibility</span>
+                <strong id="metricVisibility">--</strong>
+              </div>
+            </div>
+          </div>
+          <div class="skeletons" aria-hidden="true">
+            <div class="skeleton skeleton-title"></div>
+            <div class="skeleton skeleton-block"></div>
+            <div class="skeleton skeleton-block"></div>
+          </div>
+        </section>
+
+        <section class="card hourly-card" data-loading>
+          <div class="card-header">
+            <div>
+              <p class="section-label">Hourly forecast</p>
+              <h2>Next 24 hours</h2>
+            </div>
+          </div>
+          <div class="content">
+            <div id="hourlyList" class="hourly-list"></div>
+          </div>
+          <div class="skeletons" aria-hidden="true">
+            <div class="skeleton skeleton-row"></div>
+          </div>
+        </section>
+
+        <section class="card daily-card" data-loading>
+          <div class="card-header">
+            <div>
+              <p class="section-label">Daily forecast</p>
+              <h2>Next 7 days</h2>
+            </div>
+          </div>
+          <div class="content">
+            <div id="dailyList" class="daily-list"></div>
+          </div>
+          <div class="skeletons" aria-hidden="true">
+            <div class="skeleton skeleton-row"></div>
+          </div>
+        </section>
+
+        <section class="card map-card">
+          <div class="card-header">
+            <div>
+              <p class="section-label">Wind Map (Prototype)</p>
+              <h2>Wind Map Prototype</h2>
+            </div>
+            <span class="pill">Wind layer (prototype)</span>
+          </div>
+          <div id="windMap" class="map"></div>
+          <p id="mapStatus" class="map-status">Click on the map to sample wind data.</p>
+        </section>
+      </main>
+    </div>
+
+    <footer class="footer">
+      <p>Weather data by Open-Meteo.com · Prototype interface for educational use.</p>
+    </footer>
+  </div>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+  <script src="app.js"></script>
+</body>
+</html>
