@@ -11,6 +11,7 @@ const state = {
   lastData: null,
   map: null,
   mapLayer: null,
+  rainSystem: null,
 };
 
 const els = {
@@ -79,6 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
   bindFavoriteToggle();
   bindClearFavorites();
   initMap();
+  state.rainSystem = initRainSystem();
 
   const first = state.favorites[0] || defaultLocation;
   loadWeather(first);
@@ -334,10 +336,25 @@ function renderDaily(data) {
 function applyWeatherTheme(code) {
   document.body.classList.remove('theme-good', 'theme-bad');
   if (code === undefined || code === null || Number.isNaN(code)) {
+    if (state.rainSystem) {
+      state.rainSystem.setActive(false);
+    }
+    document.body.classList.remove('is-rainy');
     return;
   }
-  const isGood = [0, 1, 2].includes(Number(code));
+  const numericCode = Number(code);
+  const isGood = [0, 1, 2].includes(numericCode);
   document.body.classList.add(isGood ? 'theme-good' : 'theme-bad');
+  const isRainy = isRainCode(numericCode);
+  document.body.classList.toggle('is-rainy', isRainy);
+  if (state.rainSystem) {
+    state.rainSystem.setActive(isRainy);
+  }
+}
+
+function isRainCode(code) {
+  const rainyCodes = [51, 53, 55, 61, 63, 65, 80, 81, 82, 95, 96, 99];
+  return rainyCodes.includes(code);
 }
 
 function renderFavorites() {
@@ -512,6 +529,158 @@ function debounce(fn, delay) {
     clearTimeout(timer);
     timer = setTimeout(() => fn(...args), delay);
   };
+}
+
+function lerp(start, end, amount) {
+  return start + (end - start) * amount;
+}
+
+function initRainSystem() {
+  const canvas = document.getElementById('rainCanvas');
+  if (!canvas || !canvas.getContext) {
+    return null;
+  }
+
+  const ctx = canvas.getContext('2d');
+  let width = 0;
+  let height = 0;
+  let drops = [];
+  let splashes = [];
+  let active = false;
+  let lastTime = 0;
+  let animationId = null;
+
+  const settings = {
+    maxDrops: 480,
+    minDrops: 140,
+    wind: -0.7,
+  };
+
+  function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    const ratio = window.devicePixelRatio || 1;
+    canvas.width = width * ratio;
+    canvas.height = height * ratio;
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    buildDrops();
+  }
+
+  function buildDrops() {
+    const target = Math.min(
+      settings.maxDrops,
+      Math.max(settings.minDrops, Math.round((width * height) / 4500))
+    );
+    drops = Array.from({ length: target }, () => createDrop(true));
+    splashes = [];
+  }
+
+  function createDrop(randomY) {
+    const depth = Math.random();
+    const drop = {
+      x: Math.random() * width,
+      y: randomY ? Math.random() * height : -Math.random() * height,
+      length: lerp(10, 28, depth),
+      speed: lerp(6, 18, depth),
+      thickness: lerp(0.6, 1.6, depth),
+      opacity: lerp(0.15, 0.55, depth),
+      drift: lerp(-0.4, -1.2, depth),
+    };
+    return drop;
+  }
+
+  function update(delta) {
+    const step = delta / 16;
+    drops.forEach((drop) => {
+      drop.y += drop.speed * step;
+      drop.x += (settings.wind + drop.drift) * step;
+      if (drop.y > height + drop.length) {
+        if (Math.random() > 0.55) {
+          splashes.push({
+            x: drop.x,
+            y: height - 6,
+            life: 0,
+            ttl: lerp(260, 420, Math.random()),
+            radius: 0,
+          });
+        }
+        drop.x = Math.random() * width;
+        drop.y = -Math.random() * height * 0.4;
+      }
+      if (drop.x < -50 || drop.x > width + 50) {
+        drop.x = Math.random() * width;
+      }
+    });
+
+    splashes.forEach((splash) => {
+      splash.life += delta;
+      splash.radius += delta * 0.05;
+    });
+    splashes = splashes.filter((splash) => splash.life < splash.ttl);
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, width, height);
+
+    const haze = ctx.createLinearGradient(0, height * 0.6, 0, height);
+    haze.addColorStop(0, 'rgba(255,255,255,0)');
+    haze.addColorStop(1, 'rgba(255,255,255,0.08)');
+    ctx.fillStyle = haze;
+    ctx.fillRect(0, height * 0.6, width, height * 0.4);
+
+    ctx.lineCap = 'round';
+    drops.forEach((drop) => {
+      ctx.strokeStyle = `rgba(200, 220, 255, ${drop.opacity})`;
+      ctx.lineWidth = drop.thickness;
+      ctx.beginPath();
+      ctx.moveTo(drop.x, drop.y);
+      ctx.lineTo(drop.x + settings.wind * 8, drop.y + drop.length);
+      ctx.stroke();
+    });
+
+    splashes.forEach((splash) => {
+      const progress = splash.life / splash.ttl;
+      ctx.strokeStyle = `rgba(180, 210, 240, ${0.45 * (1 - progress)})`;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.ellipse(splash.x, splash.y, splash.radius, splash.radius * 0.4, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    });
+  }
+
+  function loop(timestamp) {
+    if (!active) {
+      animationId = null;
+      return;
+    }
+    const delta = Math.min(34, timestamp - lastTime);
+    lastTime = timestamp;
+    update(delta);
+    draw();
+    animationId = requestAnimationFrame(loop);
+  }
+
+  function setActive(next) {
+    if (active === next) {
+      return;
+    }
+    active = next;
+    if (active) {
+      lastTime = performance.now();
+      if (!animationId) {
+        animationId = requestAnimationFrame(loop);
+      }
+    } else {
+      ctx.clearRect(0, 0, width, height);
+    }
+  }
+
+  resize();
+  window.addEventListener('resize', debounce(resize, 120));
+
+  return { setActive };
 }
 
 function initMap() {
