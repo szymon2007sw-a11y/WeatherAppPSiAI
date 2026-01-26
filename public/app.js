@@ -334,7 +334,7 @@ function renderDaily(data) {
 }
 
 function applyWeatherTheme(code, cloudCover) {
-  document.body.classList.remove('theme-good', 'theme-bad', 'is-cloudy', 'is-cloudy-heavy');
+  document.body.classList.remove('theme-good', 'theme-bad', 'is-cloudy', 'is-cloudy-heavy', 'is-cinematic');
   document.body.style.removeProperty('--cloud-opacity');
   if (code === undefined || code === null || Number.isNaN(code)) {
     if (state.rainSystem) {
@@ -346,9 +346,10 @@ function applyWeatherTheme(code, cloudCover) {
   const numericCode = Number(code);
   const isGood = [0, 1, 2].includes(numericCode);
   document.body.classList.add(isGood ? 'theme-good' : 'theme-bad');
-  applyCloudLayer(numericCode, cloudCover);
+  const cloudState = applyCloudLayer(numericCode, cloudCover);
   const isRainy = isRainCode(numericCode);
   document.body.classList.toggle('is-rainy', isRainy);
+  document.body.classList.toggle('is-cinematic', isRainy || cloudState.isCloudy);
   if (state.rainSystem) {
     state.rainSystem.setActive(isRainy);
   }
@@ -359,7 +360,7 @@ function applyCloudLayer(code, cloudCover) {
   const heavyCloudCodes = [3, 45, 48, 51, 53, 55, 61, 63, 65, 71, 73, 75, 80, 81, 82, 95, 96, 99];
   const isCloudy = lightCloudCodes.includes(code) || heavyCloudCodes.includes(code);
   if (!isCloudy) {
-    return;
+    return { isCloudy: false, isHeavy: false };
   }
   const isHeavy = heavyCloudCodes.includes(code);
   document.body.classList.add('is-cloudy');
@@ -371,6 +372,7 @@ function applyCloudLayer(code, cloudCover) {
     const opacity = 0.35 + (clamped / 100) * 0.55;
     document.body.style.setProperty('--cloud-opacity', opacity.toFixed(2));
   }
+  return { isCloudy, isHeavy };
 }
 
 function isRainCode(code) {

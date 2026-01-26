@@ -15,6 +15,10 @@
   --glow-teal: rgba(45, 127, 120, 0.18);
   --cloud-color: rgba(255, 255, 255, 0.6);
   --cloud-shadow: rgba(200, 214, 230, 0.35);
+  --cinematic-opacity: 0;
+  --cinematic-vignette: rgba(0, 0, 0, 0.3);
+  --cinematic-tint: rgba(15, 28, 40, 0.22);
+  --cinematic-grain: rgba(255, 255, 255, 0.06);
   --shadow: 0 24px 50px rgba(26, 44, 45, 0.15);
   --radius: 18px;
   --transition: 200ms ease;
@@ -82,6 +86,9 @@ body.theme-bad {
   --glow-teal: rgba(125, 211, 199, 0.18);
   --cloud-color: rgba(210, 228, 245, 0.3);
   --cloud-shadow: rgba(120, 150, 180, 0.25);
+  --cinematic-vignette: rgba(0, 0, 0, 0.5);
+  --cinematic-tint: rgba(12, 20, 34, 0.35);
+  --cinematic-grain: rgba(255, 255, 255, 0.05);
   --shadow: 0 24px 50px rgba(0, 0, 0, 0.45);
 }
 
@@ -173,6 +180,37 @@ body.is-rainy .rain-canvas {
 
 body.is-rainy .app {
   filter: saturate(0.85) contrast(1.05);
+}
+
+.cinematic-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--cinematic-opacity);
+  transition: opacity 900ms ease;
+  z-index: 1;
+  mix-blend-mode: soft-light;
+  background-image:
+    radial-gradient(circle at 50% 15%, rgba(255, 255, 255, 0.06), transparent 45%),
+    radial-gradient(circle at 50% 20%, transparent 0%, var(--cinematic-vignette) 65%),
+    linear-gradient(120deg, transparent 0%, var(--cinematic-tint) 60%, transparent 100%),
+    repeating-linear-gradient(
+      120deg,
+      rgba(255, 255, 255, 0.02) 0px,
+      var(--cinematic-grain) 2px,
+      rgba(255, 255, 255, 0.01) 4px
+    );
+  background-size: 160% 160%, 140% 140%, 220% 220%, 240px 240px;
+  background-position: 0% 0%, 50% 50%, 0% 0%, 0% 0%;
+  animation: cinematicDrift 18s ease-in-out infinite, grainShift 1.8s steps(6) infinite;
+}
+
+body.is-cinematic {
+  --cinematic-opacity: 0.45;
+}
+
+body.is-rainy {
+  --cinematic-opacity: 0.65;
 }
 
 .card {
@@ -692,6 +730,27 @@ body.is-rainy .app {
   }
   to {
     transform: translate3d(-12%, 0, 0);
+  }
+}
+
+@keyframes cinematicDrift {
+  0% {
+    background-position: 0% 0%, 50% 50%, 0% 0%, 0% 0%;
+  }
+  50% {
+    background-position: 6% 4%, 48% 52%, 3% 6%, 20% 10%;
+  }
+  100% {
+    background-position: 0% 0%, 50% 50%, 0% 0%, 0% 0%;
+  }
+}
+
+@keyframes grainShift {
+  0% {
+    background-position: 0% 0%, 50% 50%, 0% 0%, 0% 0%;
+  }
+  100% {
+    background-position: 0% 0%, 50% 50%, 0% 0%, -120px 80px;
   }
 }
 
