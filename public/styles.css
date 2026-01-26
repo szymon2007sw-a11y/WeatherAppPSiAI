@@ -223,6 +223,11 @@ p {
   color: var(--muted);
 }
 
+.muted {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
 .chip-row {
   display: flex;
   flex-wrap: wrap;

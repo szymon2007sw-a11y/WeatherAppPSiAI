@@ -203,7 +203,13 @@ function renderSearchResults(results) {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'result-item';
-    button.innerHTML = `${formatLocationLabel(location)}<span class="result-meta">${location.lat.toFixed(2)}, ${location.lon.toFixed(2)}</span>`;
+    const label = document.createElement('span');
+    label.textContent = formatLocationLabel(location);
+    const meta = document.createElement('span');
+    meta.className = 'result-meta';
+    meta.textContent = `${location.lat.toFixed(2)}, ${location.lon.toFixed(2)}`;
+    button.appendChild(label);
+    button.appendChild(meta);
     button.addEventListener('click', () => {
       els.searchResults.innerHTML = '';
       els.searchInput.value = location.name;
