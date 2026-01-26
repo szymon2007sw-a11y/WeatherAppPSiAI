@@ -27,7 +27,6 @@ http://localhost:8000/public/
 - Szkielet ladowania, animacje przejsc, uklad panelowy.
 
 ## Mapa wiatru (prototyp)
-
 Sekcja **Mapa wiatru - prototyp** to szkic warstwy wiatru:
 - Klikniecie na mapie pobiera dane wiatru dla wskazanych wspolrzednych.
 - Na mapie pojawia sie kilka strzalek w poblizu punktu klikniecia.
