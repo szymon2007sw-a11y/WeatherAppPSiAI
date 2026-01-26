@@ -1,6 +1,6 @@
 # WeatherApp
 
-Szkolny projekt demonstracyjny: responsywny dashboard pogody z backendem w PHP (bez frameworkow) i frontendem w HTML/CSS/JS.
+Szkolny projekt demonstracyjny: responsywny panel pogody z backendem w PHP (bez frameworkow) i frontendem w HTML/CSS/JS.
 
 ## Uruchomienie lokalne
 
@@ -19,19 +19,19 @@ http://localhost:8000/public/
 
 ## Funkcje
 
-- Wyszukiwarka lokalizacji z lista wynikow (autocomplete po wpisaniu nazwy).
+- Wyszukiwarka lokalizacji z lista wynikow (podpowiedzi po wpisaniu nazwy).
 - Szybkie przyciski przykladowych miast.
 - Ulubione lokalizacje zapisywane w `localStorage`.
 - Aktualna pogoda, prognoza godzinowa (24h) i dzienna (7 dni).
 - Przelacznik jednostek temperatury (C/F) i wiatru (km/h / m/s).
-- Skeleton loading, animacje przejsc, layout dashboardowy.
+- Szkielet ladowania, animacje przejsc, uklad panelowy.
 
-## Wind Map (Prototype)
+## Mapa wiatru (prototyp)
 
-Sekcja **Wind Map Prototype** to szkic warstwy wiatru:
+Sekcja **Mapa wiatru - prototyp** to szkic warstwy wiatru:
 - Klikniecie na mapie pobiera dane wiatru dla wskazanych wspolrzednych.
 - Na mapie pojawia sie kilka strzalek w poblizu punktu klikniecia.
-- Warstwa jest oznaczona jako prototyp: **Wind layer (prototype)**.
+- Warstwa jest oznaczona jako prototyp: **Warstwa wiatru (prototyp)**.
 
 ## API i cache
 

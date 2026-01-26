@@ -36,12 +36,12 @@ function fetch_remote_json(string $url): array
 
     $raw = @file_get_contents($url, false, $context);
     if ($raw === false) {
-        return ['ok' => false, 'error' => 'Failed to reach upstream service.'];
+        return ['ok' => false, 'error' => 'Nie udalo sie polaczyc z serwisem zewnetrznym.'];
     }
 
     $data = json_decode($raw, true);
     if (!is_array($data)) {
-        return ['ok' => false, 'error' => 'Invalid upstream response.'];
+        return ['ok' => false, 'error' => 'Nieprawidlowa odpowiedz serwisu zewnetrznego.'];
     }
 
     return ['ok' => true, 'data' => $data];

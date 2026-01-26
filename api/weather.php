@@ -10,16 +10,16 @@ $lat = filter_var($_GET['lat'] ?? null, FILTER_VALIDATE_FLOAT);
 $lon = filter_var($_GET['lon'] ?? null, FILTER_VALIDATE_FLOAT);
 
 if ($lat === false || $lon === false) {
-    send_json(['ok' => false, 'error' => 'Invalid coordinates.'], 400);
+    send_json(['ok' => false, 'error' => 'Nieprawidlowe wspolrzedne.'], 400);
 }
 
 if ($lat < -90 || $lat > 90 || $lon < -180 || $lon > 180) {
-    send_json(['ok' => false, 'error' => 'Coordinates out of range.'], 400);
+    send_json(['ok' => false, 'error' => 'Wspolrzedne poza zakresem.'], 400);
 }
 
 $name = trim((string)($_GET['name'] ?? ''));
 if ($name !== '' && mb_strlen($name) > 80) {
-    send_json(['ok' => false, 'error' => 'Location name is too long.'], 400);
+    send_json(['ok' => false, 'error' => 'Nazwa lokalizacji jest zbyt dluga.'], 400);
 }
 
 $cacheKey = 'weather_' . md5(sprintf('%.4f_%.4f', $lat, $lon));
@@ -51,7 +51,7 @@ if (!$result['ok']) {
 $source = $result['data'];
 $data = [
     'location' => [
-        'name' => $name !== '' ? $name : 'Selected location',
+        'name' => $name !== '' ? $name : 'Wybrana lokalizacja',
         'lat' => $lat,
         'lon' => $lon,
     ],

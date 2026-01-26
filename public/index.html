@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Weather Dashboard</title>
+  <title>Panel pogodowy</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -22,20 +22,20 @@
         <span class="brand-mark"></span>
         <div>
           <p class="eyebrow">WeatherApp</p>
-          <h1>Weather Dashboard</h1>
+          <h1>Panel pogodowy</h1>
         </div>
       </div>
       <div class="unit-controls">
         <div class="unit-block">
-          <span>Temperature</span>
-          <div class="unit-group" data-unit-group="temp" role="group" aria-label="Temperature units">
+          <span>Temperatura</span>
+          <div class="unit-group" data-unit-group="temp" role="group" aria-label="Jednostki temperatury">
             <button type="button" class="unit-btn is-active" data-unit="c" aria-pressed="true">°C</button>
             <button type="button" class="unit-btn" data-unit="f" aria-pressed="false">°F</button>
           </div>
         </div>
         <div class="unit-block">
-          <span>Wind speed</span>
-          <div class="unit-group" data-unit-group="wind" role="group" aria-label="Wind speed units">
+          <span>Predkosc wiatru</span>
+          <div class="unit-group" data-unit-group="wind" role="group" aria-label="Jednostki predkosci wiatru">
             <button type="button" class="unit-btn is-active" data-unit="kmh" aria-pressed="true">km/h</button>
             <button type="button" class="unit-btn" data-unit="ms" aria-pressed="false">m/s</button>
           </div>
@@ -46,26 +46,26 @@
     <div class="layout">
       <aside class="sidebar">
         <section class="card search-card">
-          <h2>Find a location</h2>
+          <h2>Znajdz lokalizacje</h2>
           <div class="search-box">
-            <label class="sr-only" for="citySearch">Search city</label>
+            <label class="sr-only" for="citySearch">Wyszukaj miasto</label>
             <input
               id="citySearch"
               type="text"
-              placeholder="Search city or region"
+              placeholder="Wyszukaj miasto lub region"
               autocomplete="off"
-              aria-label="Search city"
+              aria-label="Wyszukaj miasto"
             />
-            <button id="searchBtn" type="button" class="btn">Search</button>
+            <button id="searchBtn" type="button" class="btn">Szukaj</button>
           </div>
-          <div id="searchResults" class="search-results" role="listbox" aria-label="Search results"></div>
+          <div id="searchResults" class="search-results" role="listbox" aria-label="Wyniki wyszukiwania"></div>
           <div class="quick-cities">
-            <p class="section-label">Quick cities</p>
+            <p class="section-label">Szybkie miasta</p>
             <div class="chip-row">
-              <button class="chip" data-name="Warsaw" data-lat="52.2297" data-lon="21.0122">Warsaw</button>
-              <button class="chip" data-name="London" data-lat="51.5072" data-lon="-0.1276">London</button>
-              <button class="chip" data-name="New York" data-lat="40.7128" data-lon="-74.0060">New York</button>
-              <button class="chip" data-name="Tokyo" data-lat="35.6762" data-lon="139.6503">Tokyo</button>
+              <button class="chip" data-name="Warszawa" data-lat="52.2297" data-lon="21.0122">Warszawa</button>
+              <button class="chip" data-name="Londyn" data-lat="51.5072" data-lon="-0.1276">Londyn</button>
+              <button class="chip" data-name="Nowy Jork" data-lat="40.7128" data-lon="-74.0060">Nowy Jork</button>
+              <button class="chip" data-name="Tokio" data-lat="35.6762" data-lon="139.6503">Tokio</button>
               <button class="chip" data-name="Sydney" data-lat="-33.8688" data-lon="151.2093">Sydney</button>
             </div>
           </div>
@@ -74,8 +74,8 @@
 
         <section class="card favorites-card">
           <div class="card-header">
-            <h2>Favorites</h2>
-            <button id="clearFavorites" type="button" class="ghost-btn">Clear</button>
+            <h2>Ulubione</h2>
+            <button id="clearFavorites" type="button" class="ghost-btn">Wyczysc</button>
           </div>
           <ul id="favoritesList" class="favorites-list"></ul>
         </section>
@@ -85,17 +85,17 @@
         <section class="card current-card" data-loading>
           <div class="card-header">
             <div>
-              <p class="section-label">Current conditions</p>
-              <h2 id="locationName">Select a location</h2>
+              <p class="section-label">Aktualne warunki</p>
+              <h2 id="locationName">Wybierz lokalizacje</h2>
               <p id="locationMeta" class="muted">—</p>
             </div>
-            <button id="favoriteToggle" type="button" class="ghost-btn" aria-label="Toggle favorite">☆ Save</button>
+            <button id="favoriteToggle" type="button" class="ghost-btn" aria-label="Przelacz ulubione">☆ Zapisz</button>
           </div>
           <div class="content">
             <div class="current-main">
               <div class="temp-block">
                 <p class="temp-value" id="currentTemp">--</p>
-                <p class="temp-meta">Feels like <span id="currentFeels">--</span></p>
+                <p class="temp-meta">Odczuwalna <span id="currentFeels">--</span></p>
                 <p id="currentCondition" class="condition">—</p>
               </div>
               <div class="wind-block">
@@ -112,23 +112,23 @@
             </div>
             <div class="metrics-grid">
               <div class="metric">
-                <span>Humidity</span>
+                <span>Wilgotnosc</span>
                 <strong id="metricHumidity">--</strong>
               </div>
               <div class="metric">
-                <span>Pressure</span>
+                <span>Cisnienie</span>
                 <strong id="metricPressure">--</strong>
               </div>
               <div class="metric">
-                <span>Cloud cover</span>
+                <span>Zachmurzenie</span>
                 <strong id="metricClouds">--</strong>
               </div>
               <div class="metric">
-                <span>Precipitation</span>
+                <span>Opad</span>
                 <strong id="metricPrecip">--</strong>
               </div>
               <div class="metric">
-                <span>Visibility</span>
+                <span>Widocznosc</span>
                 <strong id="metricVisibility">--</strong>
               </div>
             </div>
@@ -143,8 +143,8 @@
         <section class="card hourly-card" data-loading>
           <div class="card-header">
             <div>
-              <p class="section-label">Hourly forecast</p>
-              <h2>Next 24 hours</h2>
+              <p class="section-label">Prognoza godzinowa</p>
+              <h2>Nastepne 24 godziny</h2>
             </div>
           </div>
           <div class="content">
@@ -158,8 +158,8 @@
         <section class="card daily-card" data-loading>
           <div class="card-header">
             <div>
-              <p class="section-label">Daily forecast</p>
-              <h2>Next 7 days</h2>
+              <p class="section-label">Prognoza dzienna</p>
+              <h2>Nastepne 7 dni</h2>
             </div>
           </div>
           <div class="content">
@@ -173,19 +173,19 @@
         <section class="card map-card">
           <div class="card-header">
             <div>
-              <p class="section-label">Wind Map (Prototype)</p>
-              <h2>Wind Map Prototype</h2>
+              <p class="section-label">Mapa wiatru (prototyp)</p>
+              <h2>Mapa wiatru - prototyp</h2>
             </div>
-            <span class="pill">Wind layer (prototype)</span>
+            <span class="pill">Warstwa wiatru (prototyp)</span>
           </div>
           <div id="windMap" class="map"></div>
-          <p id="mapStatus" class="map-status">Click on the map to sample wind data.</p>
+          <p id="mapStatus" class="map-status">Kliknij na mapie, aby pobrac dane wiatru.</p>
         </section>
       </main>
     </div>
 
     <footer class="footer">
-      <p>Weather data by Open-Meteo.com · Prototype interface for educational use.</p>
+      <p>Dane pogodowe: Open-Meteo.com · Interfejs prototypowy do celow edukacyjnych.</p>
     </footer>
   </div>
 

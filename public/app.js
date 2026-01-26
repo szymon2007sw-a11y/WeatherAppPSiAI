@@ -40,32 +40,32 @@ const els = {
 };
 
 const WEATHER_CODES = {
-  0: 'Clear sky',
-  1: 'Mainly clear',
-  2: 'Partly cloudy',
-  3: 'Overcast',
-  45: 'Fog',
-  48: 'Rime fog',
-  51: 'Light drizzle',
-  53: 'Drizzle',
-  55: 'Dense drizzle',
-  61: 'Slight rain',
-  63: 'Rain',
-  65: 'Heavy rain',
-  71: 'Slight snow',
-  73: 'Snow',
-  75: 'Heavy snow',
-  80: 'Rain showers',
-  81: 'Rain showers',
-  82: 'Violent showers',
-  95: 'Thunderstorm',
-  96: 'Thunderstorm with hail',
-  99: 'Thunderstorm with hail',
+  0: 'Bezchmurne niebo',
+  1: 'Przewaznie bezchmurnie',
+  2: 'Czesciowe zachmurzenie',
+  3: 'Pochmurno',
+  45: 'Mgla',
+  48: 'Mgla z szadza',
+  51: 'Lekka mzawka',
+  53: 'Mzawka',
+  55: 'Gesta mzawka',
+  61: 'Lekki deszcz',
+  63: 'Deszcz',
+  65: 'Ulewny deszcz',
+  71: 'Lekki snieg',
+  73: 'Snieg',
+  75: 'Silny snieg',
+  80: 'Przelotny deszcz',
+  81: 'Przelotny deszcz',
+  82: 'Gwaltowne opady',
+  95: 'Burza',
+  96: 'Burza z gradem',
+  99: 'Burza z gradem',
 };
 
 const defaultLocation = {
-  name: 'Warsaw',
-  country: 'Poland',
+  name: 'Warszawa',
+  country: 'Polska',
   lat: 52.2297,
   lon: 21.0122,
 };
@@ -99,7 +99,7 @@ function bindSearch() {
   els.searchBtn.addEventListener('click', () => {
     const query = els.searchInput.value.trim();
     if (query.length < 2) {
-      setStatus('Type at least 2 characters.');
+      setStatus('Wpisz co najmniej 2 znaki.');
       return;
     }
     runSearch(query);
@@ -176,17 +176,17 @@ function bindClearFavorites() {
 }
 
 async function runSearch(query) {
-  setStatus('Searching...');
+  setStatus('Wyszukiwanie...');
   try {
     const data = await fetchJson(`${API.geocode}?q=${encodeURIComponent(query)}`);
     renderSearchResults(data.results || []);
     if (!data.results || data.results.length === 0) {
-      setStatus('No matches found.');
+      setStatus('Brak wynikow.');
     } else {
       setStatus('');
     }
   } catch (error) {
-    setStatus(error.message || 'Search failed.');
+    setStatus(error.message || 'Wyszukiwanie nie powiodlo sie.');
   }
 }
 
@@ -223,17 +223,17 @@ async function loadWeather(location) {
   state.currentLocation = location;
   updateFavoriteToggle();
   setLoading(true);
-  setStatus('Loading weather...');
+  setStatus('Ladowanie pogody...');
 
   try {
     const data = await fetchJson(
-      `${API.weather}?lat=${encodeURIComponent(location.lat)}&lon=${encodeURIComponent(location.lon)}&name=${encodeURIComponent(location.name || 'Location')}`
+      `${API.weather}?lat=${encodeURIComponent(location.lat)}&lon=${encodeURIComponent(location.lon)}&name=${encodeURIComponent(location.name || 'Lokalizacja')}`
     );
     state.lastData = data;
     renderAll(data);
     setStatus('');
   } catch (error) {
-    setStatus(error.message || 'Unable to load weather.');
+    setStatus(error.message || 'Nie udalo sie pobrac pogody.');
   } finally {
     setLoading(false);
   }
@@ -247,7 +247,7 @@ function renderAll(data) {
 
 function renderCurrent(data) {
   const current = data.current || {};
-  const locationLabel = state.currentLocation ? formatLocationLabel(state.currentLocation) : data.location?.name || 'Selected location';
+  const locationLabel = state.currentLocation ? formatLocationLabel(state.currentLocation) : data.location?.name || 'Wybrana lokalizacja';
   const meta = [];
   if (data.location?.lat && data.location?.lon) {
     meta.push(`${data.location.lat.toFixed(2)}, ${data.location.lon.toFixed(2)}`);
@@ -256,14 +256,14 @@ function renderCurrent(data) {
     meta.push(data.timezone);
   }
   if (current.time) {
-    meta.push(`Updated ${formatTime(current.time)}`);
+    meta.push(`Aktualizacja ${formatTime(current.time)}`);
   }
 
   els.locationName.textContent = locationLabel;
   els.locationMeta.textContent = meta.join(' · ');
   els.currentTemp.textContent = formatTemp(current.temperature_2m);
   els.currentFeels.textContent = formatTemp(current.apparent_temperature);
-  els.currentCondition.textContent = WEATHER_CODES[current.weather_code] || 'Conditions';
+  els.currentCondition.textContent = WEATHER_CODES[current.weather_code] || 'Warunki';
 
   const windDir = current.wind_direction_10m ?? 0;
   els.windArrow.style.setProperty('--wind-deg', `${windDir}deg`);
@@ -292,14 +292,14 @@ function renderHourly(data) {
     card.innerHTML = `
       <strong>${formatTime(times[i])}</strong>
       <p>${formatTemp(temps[i])}</p>
-      <p>Rain: ${formatUnit(precip[i], 'mm')}</p>
-      <p>Wind: ${formatSpeed(winds[i])}</p>
+      <p>Opad: ${formatUnit(precip[i], 'mm')}</p>
+      <p>Wiatr: ${formatSpeed(winds[i])}</p>
     `;
     els.hourlyList.appendChild(card);
   }
 
   if (count === 0) {
-    els.hourlyList.innerHTML = '<p class="muted">No hourly data available.</p>';
+    els.hourlyList.innerHTML = '<p class="muted">Brak danych godzinowych.</p>';
   }
 }
 
@@ -319,14 +319,14 @@ function renderDaily(data) {
     row.innerHTML = `
       <strong>${formatDay(times[i])}</strong>
       <span>${formatTemp(minTemps[i])} / ${formatTemp(maxTemps[i])}</span>
-      <span>Rain: ${formatUnit(precip[i], 'mm')}</span>
-      <span>Wind: ${formatSpeed(windMax[i])}</span>
+      <span>Opad: ${formatUnit(precip[i], 'mm')}</span>
+      <span>Wiatr: ${formatSpeed(windMax[i])}</span>
     `;
     els.dailyList.appendChild(row);
   }
 
   if (count === 0) {
-    els.dailyList.innerHTML = '<p class="muted">No daily data available.</p>';
+    els.dailyList.innerHTML = '<p class="muted">Brak danych dziennych.</p>';
   }
 }
 
@@ -335,7 +335,7 @@ function renderFavorites() {
   if (state.favorites.length === 0) {
     const empty = document.createElement('li');
     empty.className = 'muted';
-    empty.textContent = 'No favorites yet.';
+    empty.textContent = 'Brak ulubionych.';
     els.favoritesList.appendChild(empty);
     return;
   }
@@ -351,7 +351,7 @@ function renderFavorites() {
 
     const removeBtn = document.createElement('button');
     removeBtn.type = 'button';
-    removeBtn.textContent = 'Remove';
+    removeBtn.textContent = 'Usun';
     removeBtn.addEventListener('click', () => {
       state.favorites = state.favorites.filter((item) => item.id !== fav.id);
       saveFavorites(state.favorites);
@@ -370,8 +370,8 @@ function updateFavoriteToggle() {
     return;
   }
   const isFavorite = state.favorites.some((fav) => fav.id === locationId(state.currentLocation));
-  els.favoriteToggle.textContent = isFavorite ? '★ Saved' : '☆ Save';
-  els.favoriteToggle.setAttribute('aria-label', isFavorite ? 'Remove from favorites' : 'Add to favorites');
+  els.favoriteToggle.textContent = isFavorite ? '★ Zapisane' : '☆ Zapisz';
+  els.favoriteToggle.setAttribute('aria-label', isFavorite ? 'Usun z ulubionych' : 'Dodaj do ulubionych');
 }
 
 function setStatus(message) {
@@ -471,7 +471,7 @@ function formatDay(dateString) {
     return '--';
   }
   const date = new Date(`${dateString}T00:00:00`);
-  return date.toLocaleDateString('en-US', {
+  return date.toLocaleDateString('pl-PL', {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
@@ -491,7 +491,7 @@ async function fetchJson(url) {
   const response = await fetch(url);
   const payload = await response.json();
   if (!response.ok || !payload.ok) {
-    throw new Error(payload.error || 'Request failed.');
+    throw new Error(payload.error || 'Zapytanie nie powiodlo sie.');
   }
   return payload.data;
 }
@@ -515,20 +515,20 @@ function initMap() {
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 18,
-    attribution: '&copy; OpenStreetMap contributors',
+    attribution: '&copy; Wspoltworcy OpenStreetMap',
   }).addTo(map);
 
   const layer = L.layerGroup().addTo(map);
 
   map.on('click', async (event) => {
     const { lat, lng } = event.latlng;
-    setMapStatus('Loading wind sample...');
+    setMapStatus('Ladowanie probki wiatru...');
     try {
-      const data = await fetchJson(`${API.weather}?lat=${lat}&lon=${lng}&name=Map%20point`);
+      const data = await fetchJson(`${API.weather}?lat=${lat}&lon=${lng}&name=Punkt%20na%20mapie`);
       renderWindLayer(layer, { lat, lng }, data.current || {});
-      setMapStatus('Wind layer (prototype)');
+      setMapStatus('Warstwa wiatru (prototyp)');
     } catch (error) {
-      setMapStatus(error.message || 'Wind sample failed.');
+      setMapStatus(error.message || 'Nie udalo sie pobrac probki wiatru.');
     }
   });
 

@@ -8,13 +8,13 @@ handle_preflight();
 $query = trim((string)($_GET['q'] ?? ''));
 $length = mb_strlen($query);
 if ($length < 2 || $length > 80) {
-    send_json(['ok' => false, 'error' => 'Query must be between 2 and 80 characters.'], 400);
+    send_json(['ok' => false, 'error' => 'Zapytanie musi miec od 2 do 80 znakow.'], 400);
 }
 
 $params = [
     'name' => $query,
     'count' => 8,
-    'language' => 'en',
+    'language' => 'pl',
     'format' => 'json',
 ];
 
