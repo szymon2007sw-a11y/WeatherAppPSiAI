@@ -264,6 +264,7 @@ function renderCurrent(data) {
   els.currentTemp.textContent = formatTemp(current.temperature_2m);
   els.currentFeels.textContent = formatTemp(current.apparent_temperature);
   els.currentCondition.textContent = WEATHER_CODES[current.weather_code] || 'Warunki';
+  applyWeatherTheme(current.weather_code);
 
   const windDir = current.wind_direction_10m ?? 0;
   els.windArrow.style.setProperty('--wind-deg', `${windDir}deg`);
@@ -328,6 +329,15 @@ function renderDaily(data) {
   if (count === 0) {
     els.dailyList.innerHTML = '<p class="muted">Brak danych dziennych.</p>';
   }
+}
+
+function applyWeatherTheme(code) {
+  document.body.classList.remove('theme-good', 'theme-bad');
+  if (code === undefined || code === null || Number.isNaN(code)) {
+    return;
+  }
+  const isGood = [0, 1, 2].includes(Number(code));
+  document.body.classList.add(isGood ? 'theme-good' : 'theme-bad');
 }
 
 function renderFavorites() {
