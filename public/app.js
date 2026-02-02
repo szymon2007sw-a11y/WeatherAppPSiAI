@@ -12,6 +12,7 @@ const state = {
   map: null,
   mapLayer: null,
   rainSystem: null,
+  snowSystem: null,
 };
 
 const els = {
@@ -81,6 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
   bindClearFavorites();
   initMap();
   state.rainSystem = initRainSystem();
+  state.snowSystem = initSnowSystem();
 
   const first = state.favorites[0] || defaultLocation;
   loadWeather(first);
@@ -266,7 +268,7 @@ function renderCurrent(data) {
   els.currentTemp.textContent = formatTemp(current.temperature_2m);
   els.currentFeels.textContent = formatTemp(current.apparent_temperature);
   els.currentCondition.textContent = WEATHER_CODES[current.weather_code] || 'Warunki';
-  applyWeatherTheme(current.weather_code, current.cloud_cover);
+  applyWeatherTheme(current.weather_code, current.cloud_cover, current.temperature_2m);
 
   const windDir = current.wind_direction_10m ?? 0;
   els.windArrow.style.setProperty('--wind-deg', `${windDir}deg`);
@@ -333,25 +335,35 @@ function renderDaily(data) {
   }
 }
 
-function applyWeatherTheme(code, cloudCover) {
+function applyWeatherTheme(code, cloudCover, temperature) {
   document.body.classList.remove('theme-good', 'theme-bad', 'is-cloudy', 'is-cloudy-heavy');
   document.body.style.removeProperty('--cloud-opacity');
   if (code === undefined || code === null || Number.isNaN(code)) {
     if (state.rainSystem) {
       state.rainSystem.setActive(false);
     }
-    document.body.classList.remove('is-rainy');
+    if (state.snowSystem) {
+      state.snowSystem.setActive(false);
+    }
+    document.body.classList.remove('is-rainy', 'is-snowy', 'is-cold');
     return;
   }
   const numericCode = Number(code);
   const isGood = [0, 1, 2].includes(numericCode);
   document.body.classList.add(isGood ? 'theme-good' : 'theme-bad');
   applyCloudLayer(numericCode, cloudCover);
-  const isRainy = isRainCode(numericCode);
+  const isSnowy = isSnowCode(numericCode);
+  const isRainy = !isSnowy && isRainCode(numericCode);
   document.body.classList.toggle('is-rainy', isRainy);
+  document.body.classList.toggle('is-snowy', isSnowy);
   if (state.rainSystem) {
     state.rainSystem.setActive(isRainy);
   }
+  if (state.snowSystem) {
+    state.snowSystem.setActive(isSnowy);
+  }
+  const isCold = typeof temperature === 'number' && !Number.isNaN(temperature) && temperature < 0;
+  document.body.classList.toggle('is-cold', isCold);
 }
 
 function applyCloudLayer(code, cloudCover) {
@@ -376,6 +388,11 @@ function applyCloudLayer(code, cloudCover) {
 function isRainCode(code) {
   const rainyCodes = [51, 53, 55, 61, 63, 65, 80, 81, 82, 95, 96, 99];
   return rainyCodes.includes(code);
+}
+
+function isSnowCode(code) {
+  const snowCodes = [71, 73, 75, 77, 85, 86];
+  return snowCodes.includes(code);
 }
 
 function renderFavorites() {
@@ -668,6 +685,127 @@ function initRainSystem() {
       ctx.beginPath();
       ctx.ellipse(splash.x, splash.y, splash.radius, splash.radius * 0.4, 0, 0, Math.PI * 2);
       ctx.stroke();
+    });
+  }
+
+  function loop(timestamp) {
+    if (!active) {
+      animationId = null;
+      return;
+    }
+    const delta = Math.min(34, timestamp - lastTime);
+    lastTime = timestamp;
+    update(delta);
+    draw();
+    animationId = requestAnimationFrame(loop);
+  }
+
+  function setActive(next) {
+    if (active === next) {
+      return;
+    }
+    active = next;
+    if (active) {
+      lastTime = performance.now();
+      if (!animationId) {
+        animationId = requestAnimationFrame(loop);
+      }
+    } else {
+      ctx.clearRect(0, 0, width, height);
+    }
+  }
+
+  resize();
+  window.addEventListener('resize', debounce(resize, 120));
+
+  return { setActive };
+}
+
+function initSnowSystem() {
+  const canvas = document.getElementById('snowCanvas');
+  if (!canvas || !canvas.getContext) {
+    return null;
+  }
+
+  const ctx = canvas.getContext('2d');
+  let width = 0;
+  let height = 0;
+  let flakes = [];
+  let active = false;
+  let lastTime = 0;
+  let animationId = null;
+
+  const settings = {
+    maxFlakes: 360,
+    minFlakes: 160,
+    wind: 0.25,
+  };
+
+  function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    const ratio = window.devicePixelRatio || 1;
+    canvas.width = width * ratio;
+    canvas.height = height * ratio;
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    buildFlakes();
+  }
+
+  function buildFlakes() {
+    const target = Math.min(
+      settings.maxFlakes,
+      Math.max(settings.minFlakes, Math.round((width * height) / 7000))
+    );
+    flakes = Array.from({ length: target }, () => createFlake(true));
+  }
+
+  function createFlake(randomY) {
+    const depth = Math.random();
+    return {
+      x: Math.random() * width,
+      y: randomY ? Math.random() * height : -Math.random() * height,
+      radius: lerp(1.2, 3.8, depth),
+      speed: lerp(0.6, 2.1, depth),
+      opacity: lerp(0.35, 0.9, depth),
+      drift: lerp(-0.45, 0.7, depth),
+      wobble: Math.random() * Math.PI * 2,
+      wobbleSpeed: lerp(0.002, 0.01, Math.random()),
+    };
+  }
+
+  function update(delta) {
+    const step = delta / 16;
+    flakes.forEach((flake) => {
+      flake.wobble += flake.wobbleSpeed * delta;
+      flake.y += flake.speed * step;
+      flake.x += (settings.wind + flake.drift) * step + Math.sin(flake.wobble) * 0.4;
+
+      if (flake.y > height + flake.radius) {
+        flake.x = Math.random() * width;
+        flake.y = -Math.random() * height * 0.3;
+      }
+      if (flake.x < -50 || flake.x > width + 50) {
+        flake.x = Math.random() * width;
+      }
+    });
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, width, height);
+
+    const haze = ctx.createLinearGradient(0, 0, 0, height);
+    haze.addColorStop(0, 'rgba(255,255,255,0.02)');
+    haze.addColorStop(1, 'rgba(210,235,255,0.08)');
+    ctx.fillStyle = haze;
+    ctx.fillRect(0, 0, width, height);
+
+    flakes.forEach((flake) => {
+      ctx.fillStyle = `rgba(240, 248, 255, ${flake.opacity})`;
+      ctx.beginPath();
+      ctx.arc(flake.x, flake.y, flake.radius, 0, Math.PI * 2);
+      ctx.fill();
     });
   }
 

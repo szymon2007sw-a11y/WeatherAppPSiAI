@@ -85,6 +85,33 @@ body.theme-bad {
   --shadow: 0 24px 50px rgba(0, 0, 0, 0.45);
 }
 
+body.is-cold {
+  --bg-top: #e6f4ff;
+  --bg-base: #dfeaf6;
+  --bg-bottom: #cfe0f1;
+  --bg-accent: #c0dbf0;
+  --accent: #4aa3df;
+  --accent-dark: #2b86c6;
+  --teal: #2b7a9a;
+  --glow-accent: rgba(74, 163, 223, 0.25);
+  --glow-teal: rgba(52, 178, 199, 0.2);
+  --cloud-color: rgba(255, 255, 255, 0.7);
+  --cloud-shadow: rgba(170, 200, 230, 0.35);
+}
+
+body.theme-bad.is-cold {
+  --bg-top: #0b1a28;
+  --bg-base: #0a1622;
+  --bg-bottom: #0d1f30;
+  --accent: #6bc3ff;
+  --accent-dark: #3aa7e6;
+  --teal: #7fd2e0;
+  --glow-accent: rgba(107, 195, 255, 0.25);
+  --glow-teal: rgba(127, 210, 224, 0.2);
+  --cloud-color: rgba(200, 220, 245, 0.35);
+  --cloud-shadow: rgba(120, 150, 180, 0.3);
+}
+
 h1,
 h2,
 h3,
@@ -181,6 +208,26 @@ body.is-rainy .rain-canvas {
 
 body.is-rainy .app {
   filter: saturate(0.85) contrast(1.05);
+}
+
+.snow-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 800ms ease;
+  z-index: 1;
+  filter: blur(0.4px);
+}
+
+body.is-snowy .snow-canvas {
+  opacity: 1;
+}
+
+body.is-snowy .app {
+  filter: saturate(0.9) brightness(1.02);
 }
 
 .card {
