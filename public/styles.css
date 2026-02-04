@@ -342,6 +342,10 @@ body.is-snowy .app {
 }
 
 .btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: none;
   background: var(--accent);
   color: #fff;
@@ -354,6 +358,24 @@ body.is-snowy .app {
 
 .btn:hover {
   background: var(--accent-dark);
+}
+
+.btn.loading {
+  cursor: progress;
+  opacity: 0.9;
+  padding-right: 34px;
+}
+
+.btn.loading::after {
+  content: '';
+  position: absolute;
+  right: 12px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.65);
+  border-top-color: #fff;
+  animation: spin 0.8s linear infinite;
 }
 
 .search-results {
@@ -786,6 +808,15 @@ body.is-snowy .app {
   }
   to {
     transform: translate3d(-12%, 0, 0);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: translateY(-50%) rotate(0deg);
+  }
+  to {
+    transform: translateY(-50%) rotate(360deg);
   }
 }
 

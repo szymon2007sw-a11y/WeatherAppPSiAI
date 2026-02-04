@@ -225,6 +225,7 @@ function bindGeolocation() {
 
 async function runSearch(query) {
   setStatus('Wyszukiwanie...');
+  setSearchLoading(true);
   try {
     const data = await fetchJson(`${API.geocode}?q=${encodeURIComponent(query)}`);
     renderSearchResults(data.results || []);
@@ -235,6 +236,8 @@ async function runSearch(query) {
     }
   } catch (error) {
     setStatus(error.message || 'Wyszukiwanie nie powiodlo sie.');
+  } finally {
+    setSearchLoading(false);
   }
 }
 
@@ -585,6 +588,19 @@ function updateDataSourceBadge(data) {
     els.dataSourceBadge.textContent = '--';
     els.dataSourceBadge.classList.remove('is-live', 'is-cache');
   }
+}
+
+function setSearchLoading(isLoading) {
+  if (!els.searchBtn) {
+    return;
+  }
+  const button = els.searchBtn;
+  if (!button.dataset.label) {
+    button.dataset.label = button.textContent.trim() || 'Szukaj';
+  }
+  button.disabled = isLoading;
+  button.classList.toggle('loading', isLoading);
+  button.textContent = isLoading ? 'Szukam...' : button.dataset.label;
 }
 
 function formatTemp(value) {
