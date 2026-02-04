@@ -15,12 +15,17 @@ const state = {
   snowSystem: null,
   updateTimer: null,
   lastUpdatedIso: null,
+  clientCache: new Map(),
 };
 
 const searchState = {
   results: [],
   activeIndex: -1,
 };
+
+const CLIENT_CACHE_TTL = 5 * 60 * 1000;
+const LAST_WEATHER_PREFIX = 'weatherapp:last:';
+const LAST_WEATHER_KEY = 'weatherapp:last';
 
 const els = {
   searchInput: document.getElementById('citySearch'),
@@ -354,26 +359,57 @@ async function loadWeather(location) {
   updateFavoriteToggle();
   updateActiveQuickCity();
   updateDataSourceBadge(null);
-  setLoading(true);
-  setStatus('Ladowanie pogody...');
-  setSectionStatus('current', 'Ladowanie danych...');
-  setSectionStatus('hourly', 'Ladowanie prognozy...');
-  setSectionStatus('daily', 'Ladowanie prognozy...');
+  const cacheKey = locationId(location);
+  const cached = getClientCache(cacheKey);
+  if (cached) {
+    const cachedData = { ...cached, _source: 'client-cache' };
+    state.lastData = cachedData;
+    renderAll(cachedData);
+    updateDataSourceBadge(cachedData);
+    setStatus('Pokazano dane z pamieci. Odswiezam...');
+    setSectionStatus('current', '');
+    setSectionStatus('hourly', '');
+    setSectionStatus('daily', '');
+    setLoading(false);
+  } else {
+    setLoading(true);
+    setStatus('Ladowanie pogody...');
+    setSectionStatus('current', 'Ladowanie danych...');
+    setSectionStatus('hourly', 'Ladowanie prognozy...');
+    setSectionStatus('daily', 'Ladowanie prognozy...');
+  }
 
   try {
     const data = await fetchJson(
       `${API.weather}?lat=${encodeURIComponent(location.lat)}&lon=${encodeURIComponent(location.lon)}&name=${encodeURIComponent(location.name || 'Lokalizacja')}`
     );
+    setClientCache(cacheKey, data);
+    saveLastWeather(cacheKey, data);
     state.lastData = data;
     renderAll(data);
     updateDataSourceBadge(data);
     setStatus('');
   } catch (error) {
-    setStatus(error.message || 'Nie udalo sie pobrac pogody.');
-    setSectionStatus('current', 'Nie udalo sie pobrac danych.');
-    setSectionStatus('hourly', 'Nie udalo sie pobrac prognozy.');
-    setSectionStatus('daily', 'Nie udalo sie pobrac prognozy.');
-    updateDataSourceBadge(null);
+    const fallback = cached ? null : loadLastWeather(cacheKey);
+    if (fallback) {
+      const offlineData = { ...fallback, _source: 'offline' };
+      state.lastData = offlineData;
+      renderAll(offlineData);
+      updateDataSourceBadge(offlineData);
+      setStatus('Brak polaczenia. Pokazano ostatnie zapisane dane.');
+      setSectionStatus('current', '');
+      setSectionStatus('hourly', '');
+      setSectionStatus('daily', '');
+    } else if (cached) {
+      setStatus('Brak polaczenia. Pokazano dane z pamieci.');
+      updateDataSourceBadge({ _source: 'client-cache' });
+    } else {
+      setStatus(error.message || 'Nie udalo sie pobrac pogody.');
+      setSectionStatus('current', 'Nie udalo sie pobrac danych.');
+      setSectionStatus('hourly', 'Nie udalo sie pobrac prognozy.');
+      setSectionStatus('daily', 'Nie udalo sie pobrac prognozy.');
+      updateDataSourceBadge(null);
+    }
   } finally {
     setLoading(false);
   }
@@ -626,6 +662,61 @@ function saveFavorites(favorites) {
   }
 }
 
+function getClientCache(key) {
+  const entry = state.clientCache.get(key);
+  if (!entry) {
+    return null;
+  }
+  if (Date.now() - entry.timestamp > CLIENT_CACHE_TTL) {
+    state.clientCache.delete(key);
+    return null;
+  }
+  return entry.data;
+}
+
+function setClientCache(key, data) {
+  state.clientCache.set(key, {
+    timestamp: Date.now(),
+    data: stripMeta(data),
+  });
+}
+
+function saveLastWeather(key, data) {
+  const payload = {
+    savedAt: Date.now(),
+    data: stripMeta(data),
+  };
+  try {
+    localStorage.setItem(`${LAST_WEATHER_PREFIX}${key}`, JSON.stringify(payload));
+    localStorage.setItem(LAST_WEATHER_KEY, JSON.stringify({ key, ...payload }));
+  } catch (error) {
+    // ignore
+  }
+}
+
+function loadLastWeather(key) {
+  try {
+    const raw = localStorage.getItem(`${LAST_WEATHER_PREFIX}${key}`) || localStorage.getItem(LAST_WEATHER_KEY);
+    if (!raw) {
+      return null;
+    }
+    const parsed = JSON.parse(raw);
+    return parsed && parsed.data ? parsed.data : null;
+  } catch (error) {
+    return null;
+  }
+}
+
+function stripMeta(data) {
+  if (!data || typeof data !== 'object') {
+    return data;
+  }
+  const cloned = JSON.parse(JSON.stringify(data));
+  delete cloned._cached;
+  delete cloned._source;
+  return cloned;
+}
+
 function loadSettings() {
   try {
     const raw = localStorage.getItem('weatherapp:settings');
@@ -681,18 +772,32 @@ function updateDataSourceBadge(data) {
   if (!els.dataSourceBadge) {
     return;
   }
-  if (data && data._cached) {
-    els.dataSourceBadge.textContent = 'Z cache';
-    els.dataSourceBadge.classList.add('is-cache');
-    els.dataSourceBadge.classList.remove('is-live');
-  } else if (data) {
-    els.dataSourceBadge.textContent = 'Świeże dane';
-    els.dataSourceBadge.classList.add('is-live');
-    els.dataSourceBadge.classList.remove('is-cache');
-  } else {
+  if (!data) {
     els.dataSourceBadge.textContent = '--';
-    els.dataSourceBadge.classList.remove('is-live', 'is-cache');
+    els.dataSourceBadge.classList.remove('is-live', 'is-cache', 'is-offline');
+    return;
   }
+  if (data._source === 'offline') {
+    els.dataSourceBadge.textContent = 'Offline';
+    els.dataSourceBadge.classList.add('is-offline');
+    els.dataSourceBadge.classList.remove('is-live', 'is-cache');
+    return;
+  }
+  if (data._source === 'client-cache') {
+    els.dataSourceBadge.textContent = 'Pamiec';
+    els.dataSourceBadge.classList.add('is-cache');
+    els.dataSourceBadge.classList.remove('is-live', 'is-offline');
+    return;
+  }
+  if (data._cached) {
+    els.dataSourceBadge.textContent = 'Cache API';
+    els.dataSourceBadge.classList.add('is-cache');
+    els.dataSourceBadge.classList.remove('is-live', 'is-offline');
+    return;
+  }
+  els.dataSourceBadge.textContent = 'Swieze dane';
+  els.dataSourceBadge.classList.add('is-live');
+  els.dataSourceBadge.classList.remove('is-cache', 'is-offline');
 }
 
 function setSearchLoading(isLoading) {

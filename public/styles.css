@@ -722,6 +722,12 @@ body.is-snowy .app {
   color: var(--teal);
 }
 
+.pill-status.is-offline {
+  border-color: rgba(255, 125, 125, 0.4);
+  background: rgba(255, 125, 125, 0.12);
+  color: #e05a5a;
+}
+
 .map {
   height: 320px;
   border-radius: 16px;
