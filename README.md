@@ -21,10 +21,16 @@ http://localhost:8000/public/
 
 - Wyszukiwarka lokalizacji z lista wynikow (podpowiedzi po wpisaniu nazwy).
 - Szybkie przyciski przykladowych miast.
+- Przycisk „Uzyj mojej lokalizacji” (geolokalizacja).
 - Ulubione lokalizacje zapisywane w `localStorage`.
 - Aktualna pogoda, prognoza godzinowa (24h) i dzienna (7 dni).
 - Przelacznik jednostek temperatury (C/F) i wiatru (km/h / m/s).
+- Zapamietywanie jednostek oraz ostatnich danych dla trybu offline.
 - Szkielet ladowania, animacje przejsc, uklad panelowy.
+### PWA i offline
+
+- Aplikacje mozna zainstalowac jako PWA (manifest + service worker).
+- W trybie offline pokazywane sa ostatnio zapisane dane pogodowe.
 
 ## Mapa wiatru (prototyp)
 Sekcja **Mapa wiatru - prototyp** to szkic warstwy wiatru:
