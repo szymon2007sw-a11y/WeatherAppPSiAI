@@ -424,6 +424,12 @@ body.is-snowy .app {
   color: var(--muted);
 }
 
+.section-status {
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
 .muted {
   color: var(--muted);
   font-size: 0.85rem;

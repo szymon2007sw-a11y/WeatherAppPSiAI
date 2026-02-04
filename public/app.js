@@ -32,6 +32,9 @@ const els = {
   favoriteToggle: document.getElementById('favoriteToggle'),
   locationName: document.getElementById('locationName'),
   locationMeta: document.getElementById('locationMeta'),
+  currentStatus: document.getElementById('currentStatus'),
+  hourlyStatus: document.getElementById('hourlyStatus'),
+  dailyStatus: document.getElementById('dailyStatus'),
   currentTemp: document.getElementById('currentTemp'),
   currentFeels: document.getElementById('currentFeels'),
   currentCondition: document.getElementById('currentCondition'),
@@ -353,6 +356,9 @@ async function loadWeather(location) {
   updateDataSourceBadge(null);
   setLoading(true);
   setStatus('Ladowanie pogody...');
+  setSectionStatus('current', 'Ladowanie danych...');
+  setSectionStatus('hourly', 'Ladowanie prognozy...');
+  setSectionStatus('daily', 'Ladowanie prognozy...');
 
   try {
     const data = await fetchJson(
@@ -364,6 +370,9 @@ async function loadWeather(location) {
     setStatus('');
   } catch (error) {
     setStatus(error.message || 'Nie udalo sie pobrac pogody.');
+    setSectionStatus('current', 'Nie udalo sie pobrac danych.');
+    setSectionStatus('hourly', 'Nie udalo sie pobrac prognozy.');
+    setSectionStatus('daily', 'Nie udalo sie pobrac prognozy.');
     updateDataSourceBadge(null);
   } finally {
     setLoading(false);
@@ -378,6 +387,11 @@ function renderAll(data) {
 
 function renderCurrent(data) {
   const current = data.current || {};
+  if (!data.current) {
+    setSectionStatus('current', 'Brak danych biezacych.');
+    return;
+  }
+  setSectionStatus('current', '');
   const locationLabel = state.currentLocation ? formatLocationLabel(state.currentLocation) : data.location?.name || 'Wybrana lokalizacja';
   const meta = [];
   if (data.location?.lat && data.location?.lon) {
@@ -419,6 +433,11 @@ function renderHourly(data) {
 
   const count = Math.min(24, times.length);
   els.hourlyList.innerHTML = '';
+  if (count === 0) {
+    setSectionStatus('hourly', 'Brak danych godzinowych.');
+    return;
+  }
+  setSectionStatus('hourly', '');
   for (let i = 0; i < count; i += 1) {
     const card = document.createElement('div');
     card.className = 'hour-card';
@@ -429,10 +448,6 @@ function renderHourly(data) {
       <p>Wiatr: ${formatSpeed(winds[i])}</p>
     `;
     els.hourlyList.appendChild(card);
-  }
-
-  if (count === 0) {
-    els.hourlyList.innerHTML = '<p class="muted">Brak danych godzinowych.</p>';
   }
 }
 
@@ -446,6 +461,11 @@ function renderDaily(data) {
 
   const count = Math.min(7, times.length);
   els.dailyList.innerHTML = '';
+  if (count === 0) {
+    setSectionStatus('daily', 'Brak danych dziennych.');
+    return;
+  }
+  setSectionStatus('daily', '');
   for (let i = 0; i < count; i += 1) {
     const row = document.createElement('div');
     row.className = 'day-row';
@@ -456,10 +476,6 @@ function renderDaily(data) {
       <span>Wiatr: ${formatSpeed(windMax[i])}</span>
     `;
     els.dailyList.appendChild(row);
-  }
-
-  if (count === 0) {
-    els.dailyList.innerHTML = '<p class="muted">Brak danych dziennych.</p>';
   }
 }
 
@@ -569,6 +585,18 @@ function updateFavoriteToggle() {
 
 function setStatus(message) {
   els.statusMessage.textContent = message;
+}
+
+function setSectionStatus(section, message) {
+  const map = {
+    current: els.currentStatus,
+    hourly: els.hourlyStatus,
+    daily: els.dailyStatus,
+  };
+  const target = map[section];
+  if (target) {
+    target.textContent = message;
+  }
 }
 
 function setLoading(isLoading) {
