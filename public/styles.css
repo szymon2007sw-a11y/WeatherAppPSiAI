@@ -552,6 +552,24 @@ body.is-snowy .app {
   color: var(--teal);
 }
 
+.last-updated {
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+}
+
+.last-updated::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.7;
+  box-shadow: 0 0 0 4px rgba(255, 122, 61, 0.12);
+}
+
 .wind-block {
   display: flex;
   align-items: center;

@@ -13,6 +13,8 @@ const state = {
   mapLayer: null,
   rainSystem: null,
   snowSystem: null,
+  updateTimer: null,
+  lastUpdatedIso: null,
 };
 
 const els = {
@@ -41,6 +43,7 @@ const els = {
   mapStatus: document.getElementById('mapStatus'),
   dataSourceBadge: document.getElementById('dataSourceBadge'),
   geoBtn: document.getElementById('geoBtn'),
+  lastUpdated: document.getElementById('lastUpdated'),
 };
 
 const WEATHER_CODES = {
@@ -331,6 +334,7 @@ function renderCurrent(data) {
   els.metricClouds.textContent = formatPercent(current.cloud_cover);
   els.metricPrecip.textContent = formatUnit(current.precipitation, 'mm');
   els.metricVisibility.textContent = formatVisibility(current.visibility);
+  startUpdateTicker(current.time);
 }
 
 function renderHourly(data) {
@@ -687,6 +691,57 @@ async function fetchJson(url) {
     data._cached = true;
   }
   return data;
+}
+
+function startUpdateTicker(isoString) {
+  if (!els.lastUpdated) {
+    return;
+  }
+  if (state.updateTimer) {
+    clearInterval(state.updateTimer);
+    state.updateTimer = null;
+  }
+  state.lastUpdatedIso = isoString || null;
+  updateLastUpdatedLabel();
+  if (state.lastUpdatedIso) {
+    state.updateTimer = setInterval(updateLastUpdatedLabel, 30000);
+  }
+}
+
+function updateLastUpdatedLabel() {
+  if (!els.lastUpdated) {
+    return;
+  }
+  const iso = state.lastUpdatedIso;
+  if (!iso) {
+    els.lastUpdated.textContent = '';
+    return;
+  }
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) {
+    els.lastUpdated.textContent = '';
+    return;
+  }
+  const diffMs = Date.now() - date.getTime();
+  const diffMin = Math.round(diffMs / 60000);
+  let label = '';
+  if (diffMin < 1) {
+    label = 'Zaktualizowano przed chwila';
+  } else if (diffMin === 1) {
+    label = 'Zaktualizowano 1 minute temu';
+  } else if (diffMin < 60) {
+    label = `Zaktualizowano ${diffMin} min temu`;
+  } else {
+    const hours = Math.floor(diffMin / 60);
+    if (hours === 1) {
+      label = 'Zaktualizowano 1 godz. temu';
+    } else if (hours < 6) {
+      label = `Zaktualizowano ${hours} godz. temu`;
+    } else {
+      label = `Zaktualizowano ${date.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}`;
+    }
+  }
+  els.lastUpdated.textContent = label;
 }
 
 function debounce(fn, delay) {
