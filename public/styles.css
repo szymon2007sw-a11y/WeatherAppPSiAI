@@ -457,6 +457,15 @@ body.is-snowy .app {
   color: var(--accent);
 }
 
+.geo-btn {
+  width: 100%;
+  margin-top: 10px;
+  justify-content: center;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
 .favorites-list {
   list-style: none;
   padding: 0;

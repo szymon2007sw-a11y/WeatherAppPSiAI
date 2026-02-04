@@ -40,6 +40,7 @@ const els = {
   dailyList: document.getElementById('dailyList'),
   mapStatus: document.getElementById('mapStatus'),
   dataSourceBadge: document.getElementById('dataSourceBadge'),
+  geoBtn: document.getElementById('geoBtn'),
 };
 
 const WEATHER_CODES = {
@@ -90,6 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
   syncUnitButtons();
   bindFavoriteToggle();
   bindClearFavorites();
+  bindGeolocation();
   initMap();
   state.rainSystem = initRainSystem();
   state.snowSystem = initSnowSystem();
@@ -184,6 +186,40 @@ function bindClearFavorites() {
     saveFavorites(state.favorites);
     renderFavorites();
     updateFavoriteToggle();
+  });
+}
+
+function bindGeolocation() {
+  if (!els.geoBtn) {
+    return;
+  }
+  if (!navigator.geolocation) {
+    els.geoBtn.style.display = 'none';
+    return;
+  }
+  els.geoBtn.addEventListener('click', () => {
+    setStatus('Pobieram Twoja lokalizacje...');
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const location = {
+          name: 'Twoja lokalizacja',
+          country: '',
+          lat: latitude,
+          lon: longitude,
+        };
+        loadWeather(location);
+      },
+      (error) => {
+        const messages = {
+          1: 'Brak uprawnien do lokalizacji.',
+          2: 'Nie mozna ustalic pozycji.',
+          3: 'Przekroczono czas oczekiwania na lokalizacje.',
+        };
+        setStatus(messages[error.code] || 'Nie udalo sie pobrac lokalizacji.');
+      },
+      { enableHighAccuracy: false, timeout: 9000, maximumAge: 5 * 60 * 1000 }
+    );
   });
 }
 
