@@ -112,6 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
   state.rainSystem = initRainSystem();
   state.snowSystem = initSnowSystem();
   registerServiceWorker();
+  initRevealAnimations();
 
   const first = state.favorites[0] || defaultLocation;
   loadWeather(first);
@@ -961,6 +962,34 @@ function updateLastUpdatedLabel() {
     }
   }
   els.lastUpdated.textContent = label;
+}
+
+function initRevealAnimations() {
+  const items = document.querySelectorAll('.topbar, .card, .footer');
+  if (!items.length) {
+    return;
+  }
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  items.forEach((item, index) => {
+    item.classList.add('reveal');
+    item.classList.add(`reveal-delay-${(index % 4) + 1}`);
+  });
+  if (prefersReduced || !('IntersectionObserver' in window)) {
+    items.forEach((item) => item.classList.add('is-visible'));
+    return;
+  }
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.2 }
+  );
+  items.forEach((item) => observer.observe(item));
 }
 
 function debounce(fn, delay) {
