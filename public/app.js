@@ -39,6 +39,7 @@ const els = {
   hourlyList: document.getElementById('hourlyList'),
   dailyList: document.getElementById('dailyList'),
   mapStatus: document.getElementById('mapStatus'),
+  dataSourceBadge: document.getElementById('dataSourceBadge'),
 };
 
 const WEATHER_CODES = {
@@ -73,11 +74,20 @@ const defaultLocation = {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+  const settings = loadSettings();
+  if (settings.tempUnit) {
+    state.tempUnit = settings.tempUnit;
+  }
+  if (settings.windUnit) {
+    state.windUnit = settings.windUnit;
+  }
+
   state.favorites = loadFavorites();
   renderFavorites();
   bindSearch();
   bindQuickCities();
   bindUnitControls();
+  syncUnitButtons();
   bindFavoriteToggle();
   bindClearFavorites();
   initMap();
@@ -138,10 +148,8 @@ function bindUnitControls() {
       if (type === 'wind') {
         state.windUnit = unit;
       }
-      group.querySelectorAll('.unit-btn').forEach((btn) => {
-        btn.classList.toggle('is-active', btn === button);
-        btn.setAttribute('aria-pressed', btn === button ? 'true' : 'false');
-      });
+      saveSettings();
+      syncUnitButtons();
       if (state.lastData) {
         renderAll(state.lastData);
       }
@@ -226,6 +234,8 @@ function renderSearchResults(results) {
 async function loadWeather(location) {
   state.currentLocation = location;
   updateFavoriteToggle();
+  updateActiveQuickCity();
+  updateDataSourceBadge(null);
   setLoading(true);
   setStatus('Ladowanie pogody...');
 
@@ -235,9 +245,11 @@ async function loadWeather(location) {
     );
     state.lastData = data;
     renderAll(data);
+    updateDataSourceBadge(data);
     setStatus('');
   } catch (error) {
     setStatus(error.message || 'Nie udalo sie pobrac pogody.');
+    updateDataSourceBadge(null);
   } finally {
     setLoading(false);
   }
@@ -470,6 +482,28 @@ function saveFavorites(favorites) {
   }
 }
 
+function loadSettings() {
+  try {
+    const raw = localStorage.getItem('weatherapp:settings');
+    const parsed = raw ? JSON.parse(raw) : {};
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch (error) {
+    return {};
+  }
+}
+
+function saveSettings() {
+  const settings = {
+    tempUnit: state.tempUnit,
+    windUnit: state.windUnit,
+  };
+  try {
+    localStorage.setItem('weatherapp:settings', JSON.stringify(settings));
+  } catch (error) {
+    // ignore
+  }
+}
+
 function locationId(location) {
   return `${Number(location.lat).toFixed(4)}_${Number(location.lon).toFixed(4)}`;
 }
@@ -477,6 +511,44 @@ function locationId(location) {
 function formatLocationLabel(location) {
   const parts = [location.name, location.admin1, location.country].filter(Boolean);
   return parts.join(', ');
+}
+
+function syncUnitButtons() {
+  document.querySelectorAll('[data-unit-group]').forEach((group) => {
+    const type = group.dataset.unitGroup;
+    const target = type === 'temp' ? state.tempUnit : state.windUnit;
+    group.querySelectorAll('.unit-btn').forEach((btn) => {
+      const isActive = btn.dataset.unit === target;
+      btn.classList.toggle('is-active', isActive);
+      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+  });
+}
+
+function updateActiveQuickCity() {
+  const currentId = state.currentLocation ? locationId(state.currentLocation) : null;
+  document.querySelectorAll('.chip').forEach((chip) => {
+    const chipId = `${Number(chip.dataset.lat).toFixed(4)}_${Number(chip.dataset.lon).toFixed(4)}`;
+    chip.classList.toggle('is-active', chipId === currentId);
+  });
+}
+
+function updateDataSourceBadge(data) {
+  if (!els.dataSourceBadge) {
+    return;
+  }
+  if (data && data._cached) {
+    els.dataSourceBadge.textContent = 'Z cache';
+    els.dataSourceBadge.classList.add('is-cache');
+    els.dataSourceBadge.classList.remove('is-live');
+  } else if (data) {
+    els.dataSourceBadge.textContent = 'Świeże dane';
+    els.dataSourceBadge.classList.add('is-live');
+    els.dataSourceBadge.classList.remove('is-cache');
+  } else {
+    els.dataSourceBadge.textContent = '--';
+    els.dataSourceBadge.classList.remove('is-live', 'is-cache');
+  }
 }
 
 function formatTemp(value) {
@@ -558,7 +630,11 @@ async function fetchJson(url) {
   if (!response.ok || !payload.ok) {
     throw new Error(payload.error || 'Zapytanie nie powiodlo sie.');
   }
-  return payload.data;
+  const data = payload.data;
+  if (payload.cached && data && typeof data === 'object') {
+    data._cached = true;
+  }
+  return data;
 }
 
 function debounce(fn, delay) {
