@@ -111,6 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initMap();
   state.rainSystem = initRainSystem();
   state.snowSystem = initSnowSystem();
+  registerServiceWorker();
 
   const first = state.favorites[0] || defaultLocation;
   loadWeather(first);
@@ -812,6 +813,17 @@ function setSearchLoading(isLoading) {
   button.classList.toggle('loading', isLoading);
   button.textContent = isLoading ? 'Szukam...' : button.dataset.label;
   els.searchResults.setAttribute('aria-busy', isLoading ? 'true' : 'false');
+}
+
+function registerServiceWorker() {
+  if (!('serviceWorker' in navigator)) {
+    return;
+  }
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js').catch(() => {
+      // ignore
+    });
+  });
 }
 
 function formatTemp(value) {

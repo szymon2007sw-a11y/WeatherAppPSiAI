@@ -1,0 +1,16 @@
+{
+  "name": "Panel pogodowy",
+  "short_name": "Pogoda",
+  "start_url": "/public/",
+  "scope": "/public/",
+  "display": "standalone",
+  "background_color": "#f6f2ea",
+  "theme_color": "#ff7a3d",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}

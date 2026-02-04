@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Pogoda">
+  <defs>
+    <linearGradient id="sun" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffb347" />
+      <stop offset="100%" stop-color="#ff7a3d" />
+    </linearGradient>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f6ecd7" />
+      <stop offset="100%" stop-color="#d9eee7" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="120" fill="url(#sky)" />
+  <circle cx="190" cy="190" r="110" fill="url(#sun)" />
+  <path d="M142 324c-38 0-68 28-68 62s30 62 68 62h210c46 0 84-34 84-76s-38-76-84-76c-7 0-15 1-22 3-18-36-56-60-100-60-51 0-94 31-107 74-6-2-13-3-19-3z" fill="#ffffff" opacity="0.95" />
+  <path d="M170 356c-26 0-48 18-48 40s22 40 48 40h150c34 0 62-22 62-50s-28-50-62-50c-6 0-11 1-16 2-14-24-40-40-71-40-36 0-66 22-75 52-4-2-8-2-12-2z" fill="#e6f2f1" />
+</svg>
