@@ -399,6 +399,13 @@ body.is-snowy .app {
   transform: translateY(-2px);
 }
 
+.result-item.is-active,
+.result-item:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 10px 22px rgba(255, 122, 61, 0.18);
+  transform: translateY(-2px);
+}
+
 .result-meta {
   display: block;
   font-size: 0.8rem;

@@ -17,6 +17,11 @@ const state = {
   lastUpdatedIso: null,
 };
 
+const searchState = {
+  results: [],
+  activeIndex: -1,
+};
+
 const els = {
   searchInput: document.getElementById('citySearch'),
   searchBtn: document.getElementById('searchBtn'),
@@ -107,7 +112,7 @@ function bindSearch() {
   const handleSearch = debounce(() => {
     const query = els.searchInput.value.trim();
     if (query.length < 2) {
-      els.searchResults.innerHTML = '';
+      clearSearchResults();
       setStatus('');
       return;
     }
@@ -115,6 +120,7 @@ function bindSearch() {
   }, 350);
 
   els.searchInput.addEventListener('input', handleSearch);
+  els.searchInput.addEventListener('keydown', handleSearchKeyDown);
   els.searchBtn.addEventListener('click', () => {
     const query = els.searchInput.value.trim();
     if (query.length < 2) {
@@ -246,7 +252,11 @@ async function runSearch(query) {
 
 function renderSearchResults(results) {
   els.searchResults.innerHTML = '';
-  results.forEach((item) => {
+  searchState.results = results;
+  searchState.activeIndex = -1;
+  els.searchInput.setAttribute('aria-expanded', results.length ? 'true' : 'false');
+  els.searchInput.removeAttribute('aria-activedescendant');
+  results.forEach((item, index) => {
     const location = {
       name: item.name,
       admin1: item.admin1,
@@ -257,6 +267,9 @@ function renderSearchResults(results) {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'result-item';
+    button.id = `search-option-${index}`;
+    button.setAttribute('role', 'option');
+    button.setAttribute('aria-selected', 'false');
     const label = document.createElement('span');
     label.textContent = formatLocationLabel(location);
     const meta = document.createElement('span');
@@ -264,13 +277,73 @@ function renderSearchResults(results) {
     meta.textContent = `${location.lat.toFixed(2)}, ${location.lon.toFixed(2)}`;
     button.appendChild(label);
     button.appendChild(meta);
+    button.addEventListener('mouseenter', () => setActiveSearchIndex(index));
+    button.addEventListener('focus', () => setActiveSearchIndex(index));
     button.addEventListener('click', () => {
-      els.searchResults.innerHTML = '';
-      els.searchInput.value = location.name;
-      loadWeather(location);
+      selectSearchResult(location);
     });
     els.searchResults.appendChild(button);
   });
+}
+
+function handleSearchKeyDown(event) {
+  if (!searchState.results.length) {
+    if (event.key === 'Enter') {
+      const query = els.searchInput.value.trim();
+      if (query.length >= 2) {
+        runSearch(query);
+      }
+    }
+    return;
+  }
+  if (event.key === 'ArrowDown') {
+    event.preventDefault();
+    const next = Math.min(searchState.results.length - 1, searchState.activeIndex + 1);
+    setActiveSearchIndex(next);
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault();
+    const next = Math.max(-1, searchState.activeIndex - 1);
+    setActiveSearchIndex(next);
+  } else if (event.key === 'Enter') {
+    if (searchState.activeIndex >= 0) {
+      event.preventDefault();
+      const location = searchState.results[searchState.activeIndex];
+      if (location) {
+        selectSearchResult(location);
+      }
+    }
+  } else if (event.key === 'Escape') {
+    clearSearchResults();
+  }
+}
+
+function setActiveSearchIndex(index) {
+  searchState.activeIndex = index;
+  const options = els.searchResults.querySelectorAll('.result-item');
+  options.forEach((option, idx) => {
+    const isActive = idx === index;
+    option.classList.toggle('is-active', isActive);
+    option.setAttribute('aria-selected', isActive ? 'true' : 'false');
+  });
+  if (index >= 0 && options[index]) {
+    els.searchInput.setAttribute('aria-activedescendant', options[index].id);
+  } else {
+    els.searchInput.removeAttribute('aria-activedescendant');
+  }
+}
+
+function clearSearchResults() {
+  searchState.results = [];
+  searchState.activeIndex = -1;
+  els.searchResults.innerHTML = '';
+  els.searchInput.setAttribute('aria-expanded', 'false');
+  els.searchInput.removeAttribute('aria-activedescendant');
+}
+
+function selectSearchResult(location) {
+  clearSearchResults();
+  els.searchInput.value = location.name;
+  loadWeather(location);
 }
 
 async function loadWeather(location) {
@@ -605,6 +678,7 @@ function setSearchLoading(isLoading) {
   button.disabled = isLoading;
   button.classList.toggle('loading', isLoading);
   button.textContent = isLoading ? 'Szukam...' : button.dataset.label;
+  els.searchResults.setAttribute('aria-busy', isLoading ? 'true' : 'false');
 }
 
 function formatTemp(value) {
